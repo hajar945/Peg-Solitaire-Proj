@@ -4,25 +4,25 @@ import java.awt.Toolkit;
 
 public class Main {
     public static void main(String[] args) {
-        // Making the window frame and titling it
+        // making the window frame and titling it
         JFrame window = new JFrame("Peg Solitaire");
         
-        // Create the UI that builds the board and buttons
+        // create the UI that builds the board and buttons
         UI gameUI = new UI();
-        // Put the UI inside the empty window frame
+        // put the UI inside the empty window frame
         window.setContentPane(gameUI);
-        // Everything fits perfercly in the window with no extra space
+        // everything fits perfercly in the window with no extra space
         window.pack();
-        // Calculates the monitor's screen so the came can open in the center
+        // calculates the monitor's screen so the came can open in the center
         Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
         window.setLocation((screensize.width - window.getWidth())/2,
                            (screensize.height - window.getHeight())/2);
         
-        // Program will shut down completely when X is clicked
+        // program will shut down completely when X is clicked
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // Stops user from dragging the window to resize it. It would mess with the graphics
+        // stops user from dragging the window to resize it. It would mess with the graphics
         window.setResizable(false);  
-        // User can see the window
+        // user can see the window
         window.setVisible(true);
     }
 }

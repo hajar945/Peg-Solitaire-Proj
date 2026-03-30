@@ -1,10 +1,10 @@
 public class Move {
-    // Where the peg is starting
+    // where the peg is starting
     public int fromRow, fromCol;
-    // Where the peg is trying to go
+    // where the peg is trying to go
     public int toRow, toCol;
 
-    // Constructor that rankes in fromRow, fromCol, toRow, and toCol
+    // constructor that takes in fromRow, fromCol, toRow, and toCol
     public Move(int r1, int c1, int r2, int c2) {
         fromRow = r1;
         fromCol = c1;
@@ -12,10 +12,10 @@ public class Move {
         toCol = c2;
     }
 
-    // Checks to see if a move is a jump
+    // checks to see if a move is a jump
     public boolean isJump() {
-        // Checks if the pegs travels exactly 2 spaces vertically or horizontally
-        // If so, then yes, it's a jump
+        // checks if the pegs travels exactly 2 spaces vertically or horizontally
+        // if so, then yes, it's a jump
         return (Math.abs(fromRow - toRow) == 2 || Math.abs(fromCol - toCol) == 2);
     }
 }
