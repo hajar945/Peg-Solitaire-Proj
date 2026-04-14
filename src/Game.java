@@ -12,10 +12,11 @@ public abstract class Game {
     protected int[][] board;
     protected int boardSize = 7;
     protected int boardType = ENGLISH;
-    protected boolean isRecording = false;
-    protected ArrayList<Move> recordedHistory = new ArrayList<>();
-    protected int[][] recordStartState = null;
+    protected boolean isRecording = false;// tracks if game is currently saving states
+    protected ArrayList<int[][]> recordedHistory = new ArrayList<>();// stores sequential snapshots of the 2d array
+   // protected int[][] recordStartState = null;
 
+    
     // constructor.that runs automatically when the class is initialized
     public Game() {
         setUpGame();
@@ -86,17 +87,9 @@ public abstract class Game {
         return board[row][col];
     }
 
-    // receives a 'Move' object, which is a container holding four coordinates
+    // passes coordinates down to the math method
     public void makeMove(Move move) {
-
-        // checks if the user clicked the record button to turn the switch on
-        if (isRecording) {
-            // if recording is active, it saves a copy of this exact move container into  memory list
-           recordedHistory.add(move);
-        }
-
-     // opens the container, extracts the four specific numbers, and passes them to second makeMove
-     makeMove(move.fromRow, move.fromCol, move.toRow, move.toCol);
+        makeMove(move.fromRow, move.fromCol, move.toRow, move.toCol);
     }
 
     // overwrites the data in the array to do a jump
@@ -104,14 +97,16 @@ public abstract class Game {
         board[toRow][toCol] = board[fromRow][fromCol];
         board[fromRow][fromCol] = EMPTY;
 
-        // calculates the exact midpoint between the start and end coordinates
+        // calculates exact midpoint
         int jumpRow = (fromRow + toRow) / 2;
         int jumpCol = (fromCol + toCol) / 2;
         board[jumpRow][jumpCol] = EMPTY;
+
+        // saves a snapshot if recording is active
+        if (isRecording) {
+            recordedHistory.add(cloneBoard());
+        }
     }
-
-
-    
 
     // looks through the entire array to find coordinates that meet the requirements for a legal jump
     public Move[] getLegalMoves() {
@@ -145,14 +140,12 @@ public abstract class Game {
         return true;
     }
 
-    // iterate through the array and assign new values using a random number generator
-    public void randomizeBoard() {  
+    // iterate through array and assign random states
+    public void randomizeBoard() {
         for (int row = 0; row < boardSize; row++) {
             for (int col = 0; col < boardSize; col++) {
-  
                 if (board[row][col] != INVALID) {
-                    // Math.random() outputs a decimal between 0.0 and 1.0
-                    // makes a 50 % chance condition
+                    // 50 percent chance condition
                     if (Math.random() > 0.5) {
                         board[row][col] = PEG;
                     } else {
@@ -161,55 +154,54 @@ public abstract class Game {
                 }
             }
         }
-    }
-
-        // This method turns on the recording switch and makes a backup copy of the current board layout.
-    public void startRecording() {
-        // Flip the switch to true so the makeMove method knows it must start saving moves.
-        isRecording = true;
-
-        // Delete any old recorded moves from previous sessions so the new recording starts completely fresh.
-        recordedHistory.clear();
-
-        // Create a brand new blank 2D array that is the exact same size as the current game board.
-        recordStartState = new int[boardSize][boardSize];
-        
-        // Loop through every single row and column of the actual game board.
-        for (int r = 0; r < boardSize; r++) {
-            for (int c = 0; c < boardSize; c++) {
-                // Copy the exact numbers (0 for empty, 1 for peg, 2 for invalid) into the backup array.
-                recordStartState[r][c] = board[r][c];
-            }
+        // saves a snapshot of the scrambled board
+        if (isRecording) {
+            recordedHistory.add(cloneBoard());
         }
     }
 
-    // This method changes the true/false switch back to false so the program stops saving new moves to the list.
+    // generates a deep copy of the active board
+    public int[][] cloneBoard() {
+        int[][] copy = new int[boardSize][boardSize];
+        for (int r = 0; r < boardSize; r++) {
+            for (int c = 0; c < boardSize; c++) {
+                copy[r][c] = board[r][c];
+            }
+        }
+        return copy;
+    }
+
+    // turns on recording switch and saves initial board
+    public void startRecording() {
+        isRecording = true;
+        recordedHistory.clear();
+        recordedHistory.add(cloneBoard());
+    }
+
+    // flips the recording switch to false
     public void stopRecording() {
         isRecording = false;
     }
 
-    // This allows outside files (like UI.java) to ask the game if the recording switch is currently turned on.
+    // returns the current state of the switch
     public boolean isRecording() {
         return isRecording;
     }
 
-    // This allows outside files to get the full list of saved moves so they can be replayed on screen.
-    public ArrayList<Move> getRecordedHistory() {
+    // returns the entire list of saved snapshots
+    public ArrayList<int[][]> getRecordedHistory() {
         return recordedHistory;
     }
 
-    // This method deletes the current board layout and replaces it with the backup layout we copied earlier.
-    public void restoreRecordStartState() {
-        // Check to make sure a backup layout actually exists in memory to prevent the program from crashing.
-        if (recordStartState != null) {
-            // Loop through every single row and column of the arrays.
-            for (int r = 0; r < boardSize; r++) {
-                for (int c = 0; c < boardSize; c++) {
-                    // Force the active game board to permanently overwrite its data to match the backup copy.
-                    board[r][c] = recordStartState[r][c];
-                }
+    // overwrites active board with a specific saved snapshot
+    public void loadRecordState(int index) {
+        int[][] state = recordedHistory.get(index);
+        for (int r = 0; r < boardSize; r++) {
+            for (int c = 0; c < boardSize; c++) {
+                board[r][c] = state[r][c];
             }
         }
     }
+
     
 }

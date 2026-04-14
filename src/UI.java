@@ -408,69 +408,50 @@ public class UI extends JPanel implements ActionListener, MouseListener {
     public void mouseEntered(MouseEvent evt) { }
     public void mouseExited(MouseEvent evt) { }
 
-    // prepares the board and starts the replay timer
+    // prepares board and starts replay timer
     private void startReplay() {
-        // check if the recorded list is completely empty. If it is empty, stop reading code here to avoid a crash
+        // stop reading if history is empty
         if (game.getRecordedHistory().isEmpty()) return;
-        
-        // change the game state to false so normal game rules stop applying
+        // block normal game rules
         gameInProgress = false;
-        
-        // stop the auto robot timer just in case it was accidentally left running
+        // stop automated robot timer
         autoTimer.stop();
-        
-        // tell the game file to erase the current board and put the backup layout back into memory
-        game.restoreRecordStartState();
-        
-        // reset the counter to 0 so the playback starts from the very first move in the list
-        replayIndex = 0;
-        
-        // set to true to permanently block human mouse clicks during the playback
+        // put very first snapshot onto the board
+        game.loadRecordState(0);
+        // set counter to 1 since first frame is loaded
+        replayIndex = 1;
+        // block human mouse clicks
         isReplaying = true;
-        
-        // start the 500 millisecond timer
+        // start half-second timer
         replayTimer.start();
-        
-        // update the text label at the bottom of the screen
+        // update bottom text
         message.setText("Replaying...");
-        
-        // redraw the graphics so the user physically sees the backup layout appear on the screen
+        // visually update board
         repaint();
     }
-
-    // executes exactly one single recorded jump every time the timer reaches 500 milliseconds
+    // executes one frame of replay every timer tick
     private void executeReplayStep() {
-        // get the full list of saved moves from the Game file
-        ArrayList<Move> history = game.getRecordedHistory();
-        
-        // check if our counter number is currently smaller than the total amount of saved moves in the list
+        // grab history list from game
+        ArrayList<int[][]> history = game.getRecordedHistory();
+
+        // check if counter is within bounds
         if (replayIndex < history.size()) {
-            // if yes, pull one saved move out of the list using the current counter number
-            Move m = history.get(replayIndex);
-            
-            // force the game to execute that exact jump by passing the four saved coordinates
-            // strictly call the int version of makeMove so it does not accidentally trigger a new recording
-            game.makeMove(m.fromRow, m.fromCol, m.toRow, m.toCol); 
-            
-            // increase the counter number by 1 so next time the timer runs, it grabs the next move in the sequence
+            // overwrite board with next frame
+            game.loadRecordState(replayIndex);
+            // increment frame counter
             replayIndex++;
-            
-            // redraw the graphics so the user physically sees the piece disappear and reappear.=
+            // visually update board
             repaint();
         } else {
-            // if counter has reached the end of the list, the sequence is over. Stop the timer
+            // stop timer when sequence finishes
             replayTimer.stop();
-            
-            // set back back to false so the user is allowed to click the mouse again
+            // allow mouse clicks
             isReplaying = false;
-            
-            // tell the program the normal game mode has resumed
+            // resume normal play mode
             gameInProgress = true;
-            
-            // get new list of legal moves based on the current layout so the human can continue playing
+            // generate fresh list of legal moves
             legalMoves = game.getLegalMoves();
-            
-            // check if the board is in a stuck or won state before letting the human play
+            // evaluate if board is stuck
             checkGameOverConditions();
         }
     }
